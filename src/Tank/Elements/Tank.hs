@@ -22,6 +22,7 @@ module Tank.Elements.Tank
 , tankSpeed
 , tankColors
   -- * Tank operations
+, cover
 , tankForwardS
 , tankBackwardS
 , tankCatTurnS
@@ -55,6 +56,12 @@ data Tank = Tank
     } deriving (Show, Read)
 
 makeLenses ''Tank
+
+{-|
+Tell if a `Tank` covers a `Coord`inate.
+-}
+cover :: Tank -> Coords -> Bool
+cover t c = distance (t^.tankPos) c <= 8
 
 {-|
 Moves a `Tank` forward.

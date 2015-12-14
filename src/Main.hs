@@ -13,11 +13,15 @@ They can fire missiles, drop mines in order to destroy the opponent.
 module Main where
 
 import qualified Data.ByteString.Char8 as BIO
-import Text.XML.Generator
+import Control.Monad.State.Lazy (runState)
+import System.IO (hPrint, stderr)
 
-import Tank.Units
-import Tank.Game
-import Tank.SVG
+import Tank.Units (Coords (XY), makeDeg)
+import Tank.Game ( Action (Forward, TurnTur, Fire, DoNothing)
+                 , TankID (TankA, TankB)
+                 , playActionS
+                 )
+import Tank.SVG (svgShow, svgRender, makeSvg)
 import Tank.Defaults
 
 {-|
@@ -35,54 +39,45 @@ main = do
 
         playfield = makePlayfield tankA tankB
 
-    let actions = [ Forward TankA
-                  , Forward TankB
-                  , TurnTur TankA 90
-                  , TurnTur TankB 90
-                  , Fire TankA
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , TurnTur TankA (-30)
-                  , Fire TankA
-                  , TurnTur TankB (-30)
-                  , Fire TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  , Forward TankA
-                  , Forward TankB
-                  ]
+        actionsA = [ Forward TankA
+                   , TurnTur TankA 90
+                   , Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , TurnTur TankA (-30), Fire TankA
+                   , Forward TankA
+                   , Forward TankA
+                   , Forward TankA
+                   , Forward TankA
+                   , Forward TankA
+                   , Forward TankA
+                   , Forward TankA
+                   ] ++ cycle [DoNothing]
 
-    let playfield' = foldl engine playfield actions
+        actionsB = [ Forward TankB
+                   , TurnTur TankB 90
+                   , Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , TurnTur TankB (-30), Fire TankB
+                   , Forward TankB
+                   , Forward TankB
+                   , Forward TankB
+                   , Forward TankB
+                   , Forward TankB
+                   , Forward TankB
+                   , Forward TankB
+                   ] ++ cycle [DoNothing]
+
+    let actions = zip actionsA actionsB
+        (winner, playfield') = runState (playActionS actions) playfield
 
     let pfsvg = makeSvg (svgShow playfield') 
-    BIO.putStrLn $ xrender pfsvg
-    --print playfield'
+    BIO.putStrLn $ svgRender pfsvg
+    hPrint stderr winner

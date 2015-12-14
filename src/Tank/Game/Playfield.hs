@@ -33,7 +33,9 @@ import Tank.SVG
 There can only be two `Tank` on a game. They are identified by `TankA` or
 `TankB`.
 -}
-data TankID = TankA | TankB
+data TankID = TankA -- ^ Tank A
+            | TankB -- ^ Tank B
+            deriving (Eq, Show)
 
 {-|
 A `Playfield` is a rectangular area where two `Tank`s fight. It keeps track of

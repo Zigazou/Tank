@@ -7,7 +7,7 @@ Maintainer  : zigazou@free.fr
 Stability   : experimental
 Portability : POSIX
 -}
-module Tank.SVG.Show (makeSvg, snode, SVGShow (svgCenter, svgShow))
+module Tank.SVG.Show (makeSvg, snode, SVGShow (svgCenter, svgShow), svgRender)
 where
 
 import qualified Data.Text as T
@@ -23,6 +23,12 @@ Given `Xml` `Elem`, generates an SVG document in the form of a `Xml` `Doc`.
 -}
 makeSvg :: Xml Elem -> Xml Doc
 makeSvg = doc svgDocInfo
+
+{-|
+Render an `Xml` document into raw SVG.
+-}
+svgRender :: (Renderable r, XmlOutput t) => Xml r -> t
+svgRender = xrender
 
 {-|
 Generate a node `Xml` `Elem` given its name, its attributes and its children.

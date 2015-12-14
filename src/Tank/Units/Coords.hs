@@ -13,6 +13,7 @@ module Tank.Units.Coords
 , toPL
 , toTuple
 , center
+, distance
 , isInside
 ) where
 
@@ -54,6 +55,13 @@ center :: Coords -> Coords -> Coords
 center (XY x1 y1) (XY x2 y2) = XY ((x1 + x2) / 2) ((y1 + y2) / 2)
 center c1@(XY _ _) c2 = center c1 (toXY c2)
 center c1 c2 = toPL $ center (toXY c1) (toXY c2)
+
+{-|
+Calculate the distance between two points.
+-}
+distance :: Coords -> Coords -> Double
+distance (XY x1 y1) (XY x2 y2) = sqrt ((x2 - x1) ** 2 + (y2 - y1) ** 2)
+distance c1 c2 = distance (toXY c1) (toXY c2)
 
 {-|
 Tells whether a `Coords` is inside the rectangle formed by 2 `Coords`. Returns

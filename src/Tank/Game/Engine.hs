@@ -16,7 +16,7 @@ The engine handles the rules of the game:
 -}
 module Tank.Game.Engine
 ( Winner (..)
-, engine
+, playActionS
 ) where
 
 import Control.Lens
@@ -33,22 +33,43 @@ Designates who is the winner, if any.
 data Winner = NoWinner -- ^ No winner, the game may go on
             | DrawGame -- ^ No winner but it’s a draw game
             | Winner TankID -- ^ Someone won!
+            deriving (Eq, Show)
 
 {-|
-Given a `Playfield` and an `Action`, returns the updated `Playfield`.
+Play couples of `Action` on a `Playfield` and look for a `Winner` (or no winner
+if the list is exhausted).
 -}
-engine :: Playfield -> Action -> Playfield
-engine playfield action = execState (engineS action) playfield
+playActionS :: Monad m => [(Action, Action)] -> StateT Playfield m Winner
+playActionS [] = return NoWinner
+playActionS ((action1, action2):actions) = do
+    winner <- playS action1 >> playS action2
+    if winner == NoWinner then playActionS actions
+                          else return winner
 
 {-|
 The game itself.
 -}
-engineS :: Monad m => Action -> StateT Playfield m Winner
-engineS action = do
+playS :: Monad m => Action -> StateT Playfield m Winner
+playS action = do
     moveMissilesS
     runActionS action
     clearOutOfBoundS
-    return NoWinner
+    findWinner
+
+{-|
+Find which `Tank` is the `Winner`.
+-}
+findWinner :: Monad m => StateT Playfield m Winner
+findWinner = do
+    (t1, t2) <- use pTanks
+    missiles <- use pMissiles
+    let findHit tank = missiles^..folded.missilePos.filtered (cover tank)
+
+    return $ case (findHit t1, findHit t2) of
+         ([], []) -> NoWinner
+         ([], _) -> Winner TankA
+         (_, []) -> Winner TankB
+         _ -> DrawGame
 
 {-|
 Clear out of bounds elements (`Missile`) from the `Playfield` since they can
