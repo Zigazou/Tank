@@ -10,4 +10,4 @@ The engine does not implement artificial intelligence controlling the tanks.
 
 It generates SVG output of the playfield state.
 
-![An example of a playfield with two tanks](gfx/example.svg)
+![An example of a playfield with two tanks](gfx/example.png)
