@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="9.8778mm"
+   width="9.8778mm"
+   version="1.1"
+   viewBox="0 0 35.000001 35.000001"
+   id="svg2"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="tank1.svg">
+  <metadata
+     id="metadata22">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs20" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1149"
+     id="namedview18"
+     showgrid="false"
+     inkscape:snap-object-midpoints="false"
+     inkscape:snap-center="false"
+     inkscape:zoom="26.971368"
+     inkscape:cx="15.401716"
+     inkscape:cy="21.821163"
+     inkscape:window-x="-9"
+     inkscape:window-y="25"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <g
+     style="fill:#888888"
+     id="g6"
+     transform="translate(-320.12,-216.13)">
+    <rect
+       id="rect8"
+       x="322.23999"
+       y="217.45"
+       width="30.747"
+       height="4.2932" />
+    <rect
+       id="rect10"
+       x="322.23999"
+       y="245.50999"
+       width="30.747"
+       height="4.2932" />
+  </g>
+  <circle
+     style="fill:#c5c1ec"
+     id="circle12"
+     r="17.5"
+     cy="17.500006"
+     cx="17.499994" />
+  <g
+     id="g4156"
+     inkscape:transform-center-x="-3.9258218"
+     transform="matrix(0.86992397,-0.49318585,0.49318585,0.86992397,-6.3544255,10.907081)"
+     inkscape:transform-center-y="-1.3412208">
+    <circle
+       cx="17.499994"
+       cy="17.500006"
+       r="7.0197001"
+       id="circle14"
+       style="fill:#7262e1" />
+    <rect
+       height="4.2930999"
+       width="14.9"
+       y="15.349996"
+       x="18.480005"
+       id="rect16" />
+  </g>
+</svg>
