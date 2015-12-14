@@ -55,7 +55,7 @@ main = do
                    , Forward TankA
                    , Forward TankA
                    , Forward TankA
-                   ] ++ cycle [DoNothing]
+                   ] ++ repeat DoNothing
 
         actionsB = [ Forward TankB
                    , TurnTur TankB 90
@@ -73,7 +73,7 @@ main = do
                    , Forward TankB
                    , Forward TankB
                    , Forward TankB
-                   ] ++ cycle [DoNothing]
+                   ] ++ repeat DoNothing
 
     let actions = zip actionsA actionsB
         (winner, playfield') = runState (playActionS actions) playfield

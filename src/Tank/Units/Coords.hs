@@ -68,9 +68,9 @@ Tells whether a `Coords` is inside the rectangle formed by 2 `Coords`. Returns
 `True` if this is the case, `False` otherwise.
 -}
 isInside :: (Coords, Coords) -> Coords -> Bool
-isInside ((XY x1 y1), (XY x2 y2)) (XY x y) =
+isInside (XY x1 y1, XY x2 y2) (XY x y) =
     (x >= x1 && x <= x2) && (y >= y1 && y <= y2)
-isInside (mini, maxi) c = isInside ((toXY mini, toXY maxi)) (toXY c)
+isInside (mini, maxi) c = isInside (toXY mini, toXY maxi) (toXY c)
 
 instance Eq Coords where
     (==) (XY x1 y1) (XY x2 y2) = x1 == x2 && y1 == y2

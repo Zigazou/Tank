@@ -40,7 +40,7 @@ Create a `Tank` based on its coordinates, the direction at which it points to
 and its colors. The other values are set by default.
 -}
 makeTank :: Coords -> Angle -> (T.Text, T.Text) -> Tank
-makeTank position direction colors =
+makeTank position direction =
     Tank position
          direction
          direction
@@ -48,6 +48,5 @@ makeTank position direction colors =
          (Reservoir 20 20 missile)
          (Reservoir 5 5 mine)
          1.0
-         colors
     where missile = Missile (XY 0 0) (makeDeg 0) 5.0
           mine = Mine (XY 0 0)
