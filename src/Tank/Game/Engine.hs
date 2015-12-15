@@ -42,19 +42,13 @@ if the list is exhausted).
 playActionS :: Monad m => [(Action, Action)] -> StateT Playfield m Winner
 playActionS [] = return NoWinner
 playActionS ((action1, action2):actions) = do
-    winner <- playS action1 >> playS action2
+    moveMissilesS
+    runActionS action1
+    runActionS action2
+    clearOutOfBoundS
+    winner <- findWinner
     if winner == NoWinner then playActionS actions
                           else return winner
-
-{-|
-The game itself.
--}
-playS :: Monad m => Action -> StateT Playfield m Winner
-playS action = do
-    moveMissilesS
-    runActionS action
-    clearOutOfBoundS
-    findWinner
 
 {-|
 Find which `Tank` is the `Winner`.
