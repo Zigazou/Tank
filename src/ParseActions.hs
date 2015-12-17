@@ -11,14 +11,19 @@ Handle `Action` parsing and error messages.
 -}
 module ParseActions (parseActions) where
 
-import Text.ParserCombinators.Parsec hiding ((<|>), many, optional)
+import Text.ParserCombinators.Parsec
+       ( GenParser, ParseError, runParser, oneOf, skipMany1, (<?>), try, many1
+       , getState
+       )
+import Text.ParserCombinators.Parsec.Number (int)
 import Text.Parsec.Prim (parserFail)
-import Data.Char (isAlpha)
+import Text.Parsec.Char (endOfLine)
 import Data.Text (Text)
 import qualified Data.Text as T
-import Control.Applicative
+import Control.Applicative (many, (<|>))
+import Control.Monad (liftM)
 
-import Tank.Units (Angle, makeDeg)
+import Tank.Units (makeDeg)
 import Tank.Game (TankID, Action (..))
 
 {-|
@@ -26,60 +31,85 @@ Parse a `ByteString` into a list of `Action` for a specific `TankID`.
 If it fails to parse, it returns an error message indicating where it failed.
 -}
 parseActions :: TankID -> Text -> Either ParseError [Action]
-parseActions tid raw = parse (program tid) (show tid) (T.unpack raw)
+parseActions tid raw = runParser program tid (show tid) (T.unpack raw)
 
-sep :: GenParser Char st Char
-sep = char ' ' <|> char '\n' <|> char '\r' <?> "separator"
+{-|
+A white space is either a space or a tabulation.
+-}
+whitespace :: GenParser Char st Char
+whitespace = oneOf " \t"
 
-signedDecimal :: GenParser Char st Integer
-signedDecimal = do
-    sign <- optional (char '-')
-    digits <- many1 digit
-    return . read $ case sign of
-        Nothing -> digits
-        Just _ -> '-':digits
+{-|
+White spaces are a list of white space with 0 or more elements.
+-}
+whitespaces :: GenParser Char st String
+whitespaces = many whitespace
 
-simpleActions :: [(String, TankID -> Action)]
-simpleActions = [ ("forward", Forward)
-                , ("backward", Backward)
-                , ("fire", Fire)
-                , ("dropmine", DropMine)
-                ]
+{-|
+A program is made of lines containing or not actions.
+-}
+program :: GenParser Char TankID [Action]
+program = many (actionLine <* many emptyLine) <?> "program"
 
-angleActions :: [(String, TankID -> Angle -> Action)]
-angleActions = [ ("turncaterpillar", TurnCat)
-               , ("turnturret", TurnTur)
-               ]
+{-|
+An empty line is a line which contains nothing else than white spaces.
+-}
+emptyLine :: GenParser Char st Char
+emptyLine = whitespaces >> endOfLine
 
-program :: TankID -> GenParser Char st [Action]
-program tid = sepBy (command tid) (many1 sep)
-            <* many sep <* eof
-            <?> "program"
+{-|
+An action line is a command surrounded or not by white spaces.
+-}
+actionLine :: GenParser Char TankID Action
+actionLine = do
+    _ <- whitespaces
+    c <- command
+    _ <- whitespaces
+    _ <- endOfLine
+    return c
 
-command :: TankID -> GenParser Char st Action
-command tid = try (simpleAction tid)
-              <|> (angleAction tid)
-              <?> "command"
+{-|
+A command is either a simple action or an angle action.
+-}
+command :: GenParser Char TankID Action
+command = try simpleAction <|> angleAction <?> "command"
 
-actionName :: GenParser Char st String
-actionName = many1 (satisfy isAlpha) <?> "action"
-
+{-|
+Given a list of allowed names, parse an action name and returns its constructor.
+-}
 actionByName :: [(String, f)] -> GenParser Char st f
 actionByName names = do
-    name <- actionName
-    case lookup name names of
-        Just l -> return l
-        Nothing -> parserFail $ "unknown action '" ++ name ++ "'"
+    name <- many1 (oneOf ['a'..'z']) <?> "action"
+    maybe (pfail name) return (lookup name names)
+    where pfail x = parserFail $ "unknown action '" ++ x ++ "'"
 
-simpleAction :: TankID -> GenParser Char st Action
-simpleAction tid = do
+{-|
+Parse a simple action. A simple action is an action which does not require any
+parameter.
+-}
+simpleAction :: GenParser Char TankID Action
+simpleAction = do
     action <- actionByName simpleActions
-    return $ action tid
+    liftM action getState
 
-angleAction :: TankID -> GenParser Char st Action
-angleAction tid = do
+    where simpleActions = [ ("forward", Forward)
+                          , ("backward", Backward)
+                          , ("fire", Fire)
+                          , ("dropmine", DropMine)
+                          ]
+
+{-|
+Parse an angle action. An angle action is an action which requires an angle
+as a parameter. The angle is an integer and is mesured in degrees.
+-}
+angleAction :: GenParser Char TankID Action
+angleAction = do
     action <- actionByName angleActions
-    _ <- skipMany1 sep
-    d <- signedDecimal
-    let angle = makeDeg (fromIntegral d)
-    return $ action tid angle
+    _ <- skipMany1 whitespace
+    d <- int
+    let angle = makeDeg $ fromIntegral (d :: Integer)
+    liftM (flip action angle) getState
+
+    where angleActions = [ ("turncaterpillar", TurnCat)
+                         , ("turnturret", TurnTur)
+                         ]

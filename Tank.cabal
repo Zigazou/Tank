@@ -24,12 +24,14 @@ executable Tank
   -- mtl: monad state
   -- lens: getters/setters for complex structure
   -- parsec: parsing of actions
+  -- parsec-numbers: parsing of integer
   build-depends:       base >=4.8 && <4.9,
                        xmlgen,
                        text,
                        bytestring,
                        mtl,
                        lens,
-                       parsec
+                       parsec,
+                       parsec-numbers
   hs-source-dirs:      src
   default-language:    Haskell2010
