@@ -11,36 +11,75 @@ Handle `Action` parsing and error messages.
 -}
 module ParseActions (parseActions) where
 
-import qualified Data.ByteString.Char8 as BIO
-import Data.Attoparsec.ByteString.Char8 (parse, IResult (Fail, Done, Partial))
-import Data.List (intercalate)
+import Text.ParserCombinators.Parsec hiding ((<|>), many, optional)
+import Text.Parsec.Prim (parserFail)
+import Data.Char (isAlpha)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Control.Applicative
 
-import Tank.Game (TankID, actionsParser, Action)
+import Tank.Units (Angle, makeDeg)
+import Tank.Game (TankID, Action (..))
 
 {-|
 Parse a `ByteString` into a list of `Action` for a specific `TankID`. 
 If it fails to parse, it returns an error message indicating where it failed.
 -}
-parseActions :: TankID -> BIO.ByteString -> Either String [Action]
-parseActions tid raw = checkParse $ parse (actionsParser tid) raw
-    where
-        checkParse :: IResult BIO.ByteString [Action] -> Either String [Action]
-        checkParse (Fail remain ctxs _) = Left $ errorMessage raw remain tid ctxs
-        checkParse (Partial p) = checkParse (p BIO.empty)
-        checkParse (Done _ actions) = Right actions
+parseActions :: TankID -> Text -> Either ParseError [Action]
+parseActions tid raw = parse (program tid) (show tid) (T.unpack raw)
 
-offsetToRow :: BIO.ByteString -> Int -> Int
-offsetToRow b offset = length (BIO.lines (BIO.take offset b))
+sep :: GenParser Char st Char
+sep = char ' ' <|> char '\n' <|> char '\r' <?> "separator"
 
-firstLine :: BIO.ByteString -> BIO.ByteString
-firstLine = BIO.takeWhile (/= '\n')
+signedDecimal :: GenParser Char st Integer
+signedDecimal = do
+    sign <- optional (char '-')
+    digits <- many1 digit
+    return . read $ case sign of
+        Nothing -> digits
+        Just _ -> '-':digits
 
-errorMessage :: BIO.ByteString -> BIO.ByteString -> TankID -> [String] -> String
-errorMessage input remain tid ctxs = concat [ intercalate " > " ctxs
-                                            , " for ", show tid
-                                            , " at line: ", show row
-                                            , "\n    --> "
-                                            , BIO.unpack $ firstLine remain
-                                            ]
-    where offset = BIO.length input - BIO.length remain
-          row = offsetToRow input offset + 1
+simpleActions :: [(String, TankID -> Action)]
+simpleActions = [ ("forward", Forward)
+                , ("backward", Backward)
+                , ("fire", Fire)
+                , ("dropmine", DropMine)
+                ]
+
+angleActions :: [(String, TankID -> Angle -> Action)]
+angleActions = [ ("turncaterpillar", TurnCat)
+               , ("turnturret", TurnTur)
+               ]
+
+program :: TankID -> GenParser Char st [Action]
+program tid = sepBy (command tid) (many1 sep)
+            <* many sep <* eof
+            <?> "program"
+
+command :: TankID -> GenParser Char st Action
+command tid = try (simpleAction tid)
+              <|> (angleAction tid)
+              <?> "command"
+
+actionName :: GenParser Char st String
+actionName = many1 (satisfy isAlpha) <?> "action"
+
+actionByName :: [(String, f)] -> GenParser Char st f
+actionByName names = do
+    name <- actionName
+    case lookup name names of
+        Just l -> return l
+        Nothing -> parserFail $ "unknown action '" ++ name ++ "'"
+
+simpleAction :: TankID -> GenParser Char st Action
+simpleAction tid = do
+    action <- actionByName simpleActions
+    return $ action tid
+
+angleAction :: TankID -> GenParser Char st Action
+angleAction tid = do
+    action <- actionByName angleActions
+    _ <- skipMany1 sep
+    d <- signedDecimal
+    let angle = makeDeg (fromIntegral d)
+    return $ action tid angle

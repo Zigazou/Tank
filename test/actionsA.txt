@@ -1,5 +1,5 @@
 forward
-turnturret 90
+turnturret -30
 fire
 turnturret -30
 fire

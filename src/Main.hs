@@ -13,8 +13,9 @@ They can fire missiles, drop mines in order to destroy the opponent.
 module Main where
 
 import qualified Data.ByteString.Char8 as BIO
+import qualified Data.Text.IO as TIO
 import Control.Monad.State.Lazy (runState)
-import System.IO (hPutStrLn, stderr)
+import System.IO (hPrint, hPutStrLn, stderr)
 import ParseActions (parseActions)
 
 import Tank.Units (Coords (XY), makeDeg)
@@ -27,8 +28,8 @@ Initialize the game and run some actions on it.
 -}
 main :: IO ()
 main = do
-    actionsATxt <- BIO.readFile "test/actionsA.txt"
-    actionsBTxt <- BIO.readFile "test/actionsB.txt"
+    actionsATxt <- TIO.readFile "test/actionsA.txt"
+    actionsBTxt <- TIO.readFile "test/actionsB.txt"
 
     let tankA = makeTank (XY 500.0 30.0)
                          (makeDeg 90)
@@ -44,8 +45,8 @@ main = do
         actionsB = parseActions TankB actionsBTxt
 
     case (actionsA, actionsB) of
-         (Left msg, _) -> hPutStrLn stderr msg
-         (_, Left msg) -> hPutStrLn stderr msg
+         (Left msg, _) -> hPrint stderr msg
+         (_, Left msg) -> hPrint stderr msg
          (Right a, Right b) -> do
             let actions = zip a b
                 (winner, playfield') = runState (playActionS actions) playfield
