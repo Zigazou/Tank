@@ -1,0 +1,22 @@
+forward
+turnturret -30
+fire
+turnturret -30
+fire
+turnturret -30
+fire
+turnturret -30
+fire
+turnturret -30
+fire
+turnturret -30
+fire
+turnturret -30
+fire
+forward
+forward
+forward
+forward
+forward
+forward
+forward

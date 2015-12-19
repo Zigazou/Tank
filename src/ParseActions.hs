@@ -13,7 +13,7 @@ module ParseActions (parseActions) where
 
 import Text.ParserCombinators.Parsec
        ( GenParser, ParseError, runParser, oneOf, skipMany1, (<?>), try, many1
-       , getState
+       , getState, skipMany
        )
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.Parsec.Prim (parserFail)
@@ -49,7 +49,7 @@ whitespaces = many whitespace
 A program is made of lines containing or not actions.
 -}
 program :: GenParser Char TankID [Action]
-program = many (actionLine <* many emptyLine) <?> "program"
+program = many (skipMany emptyLine *> actionLine) <?> "program"
 
 {-|
 An empty line is a line which contains nothing else than white spaces.
@@ -61,12 +61,7 @@ emptyLine = whitespaces >> endOfLine
 An action line is a command surrounded or not by white spaces.
 -}
 actionLine :: GenParser Char TankID Action
-actionLine = do
-    _ <- whitespaces
-    c <- command
-    _ <- whitespaces
-    _ <- endOfLine
-    return c
+actionLine = whitespaces *> command <* whitespaces <* endOfLine >>= return
 
 {-|
 A command is either a simple action or an angle action.
