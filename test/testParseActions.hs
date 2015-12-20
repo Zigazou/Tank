@@ -25,37 +25,44 @@ import ParseActions (parseActions)
 -- Test valid files
 validFiles :: [ValidFile]
 validFiles =
-    [ ValidFile "test/valid/noAction0.txt" 0
-    , ValidFile "test/valid/noAction1.txt" 0
-    , ValidFile "test/valid/noAction2.txt" 0
-    , ValidFile "test/valid/oneAction0.txt" 1
+    [ ValidFile "test/valid/oneAction0.txt" 1
     , ValidFile "test/valid/oneAction1.txt" 1
     , ValidFile "test/valid/oneAction2.txt" 1
+    , ValidFile "test/valid/someActions0.txt" 7
     ]
 
 data ValidFile = ValidFile String Int deriving Show
 instance Arbitrary ValidFile where
     arbitrary = elements validFiles
 
-prop_validGrid :: ValidFile -> Property
-prop_validGrid (ValidFile fp count) = monadicIO $ do
+prop_validProgram :: ValidFile -> Property
+prop_validProgram (ValidFile fp count) = monadicIO $ do
     source <- run $ TIO.readFile fp
     case parseActions TankA source of
          Left msg -> fail $ show msg
-         Right actions -> assert $ count == length actions
+         Right actions ->
+            case count == length actions of
+                 True -> return ()
+                 False -> fail $ "Invalid number of actions " ++ show (length actions)
 
 -- Tests invalid grids
 invalidFiles :: [InvalidFile]
-invalidFiles = [ InvalidFile "test/invalid/unknownAction0.txt"
+invalidFiles = [ InvalidFile "test/invalid/noAction0.txt"
+               , InvalidFile "test/invalid/noAction1.txt"
+               , InvalidFile "test/invalid/noAction2.txt"
+               , InvalidFile "test/invalid/unknownAction0.txt"
                , InvalidFile "test/invalid/unknownAction1.txt"
+               , InvalidFile "test/invalid/unknownAction2.txt"
+               , InvalidFile "test/invalid/unknownAction3.txt"
+               , InvalidFile "test/invalid/wrongAngle0.txt"
                ]
 
 newtype InvalidFile = InvalidFile String deriving Show
 instance Arbitrary InvalidFile where
     arbitrary = elements invalidFiles
 
-prop_invalid :: InvalidFile -> Property
-prop_invalid (InvalidFile fp) = monadicIO $ do
+prop_invalidProgram :: InvalidFile -> Property
+prop_invalidProgram (InvalidFile fp) = monadicIO $ do
     source <- run $ TIO.readFile fp
     assert $ isLeft $ parseActions TankA source
 

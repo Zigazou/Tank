@@ -1,0 +1,4 @@
+forward
+turnturret -30
+fire
+foobar

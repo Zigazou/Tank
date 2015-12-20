@@ -1,0 +1,3 @@
+forward
+foobar -30
+fire

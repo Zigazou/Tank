@@ -13,11 +13,11 @@ module ParseActions (parseActions) where
 
 import Text.ParserCombinators.Parsec
        ( GenParser, ParseError, runParser, oneOf, skipMany1, (<?>), try, many1
-       , getState, skipMany
+       , getState, eof, sepEndBy1
        )
 import Text.ParserCombinators.Parsec.Number (int)
 import Text.Parsec.Prim (parserFail)
-import Text.Parsec.Char (endOfLine)
+import Text.Parsec.Char (endOfLine, spaces)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Control.Applicative (many, (<|>))
@@ -45,23 +45,14 @@ White spaces are a list of white space with 0 or more elements.
 whitespaces :: GenParser Char st String
 whitespaces = many whitespace
 
+actionSeparator :: GenParser Char st String
+actionSeparator = whitespaces >> many1 (endOfLine <* whitespaces)
+
 {-|
 A program is made of lines containing or not actions.
 -}
 program :: GenParser Char TankID [Action]
-program = many (skipMany emptyLine *> actionLine) <?> "program"
-
-{-|
-An empty line is a line which contains nothing else than white spaces.
--}
-emptyLine :: GenParser Char st Char
-emptyLine = whitespaces >> endOfLine
-
-{-|
-An action line is a command surrounded or not by white spaces.
--}
-actionLine :: GenParser Char TankID Action
-actionLine = whitespaces *> command <* whitespaces <* endOfLine >>= return
+program = spaces *> command `sepEndBy1` actionSeparator <* eof <?> "program"
 
 {-|
 A command is either a simple action or an angle action.
